@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState, MouseEvent} from "react";
 import { useFormik } from "formik";
 import styled from "styled-components";
 
@@ -17,15 +17,63 @@ interface FormValues {
   address: string;
 }
 
-const EligibilityApplication = () => {
-  const { handleChange, handleSubmit, values } = useFormik<FormValues>({
+interface FunctionFromSuper {
+    submitFunction: (id: string) => void;
+}
+
+
+const EligibilityApplication : React.FC<FunctionFromSuper> = (props) => {
+    const [formSubmitted, setFormSubmitted]  = useState(false);
+    const [requestProcessed, setRequestProcessed] = useState(false);
+    const [requestId, setRequestId] = useState('');
+    let cardsAllowed = '';
+
+    const checkCardHandler = (event: MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        fetch('http://localhost:8080/applicantEligibility/getCards?reqId='+requestId)
+                      .then(res => res.text())
+                      .then((cards) => {
+                        if(cards === '-1'){
+                            setRequestProcessed(false);
+                            cardsAllowed = 'Your request is being processed';
+                        }
+                        else {
+                            setRequestProcessed(true);
+                            if (cards === ''){
+                                cardsAllowed = "No Cards Allowed";
+                            }
+                            else{
+                                cardsAllowed = cards;
+                            }
+                        }
+                        props.submitFunction(cardsAllowed);
+                      })
+                      .catch(console.log);
+        };
+
+  const { handleChange, handleSubmit, values} = useFormik<FormValues>({
     initialValues: {
       name: "",
       email: "",
-      address: "",
+      address: ""
     },
-    onSubmit: (values) => console.log(values),
+    onSubmit: (values) => {
+    const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(values)
+        };
+        fetch('http://localhost:8080/applicantEligibility/check', requestOptions)
+                .then(res => res.json())
+                .then((requestId) => {
+                    setRequestId(requestId);
+                })
+                .catch(console.log);
+        setFormSubmitted(true);
+    }
   });
+
+  if(!formSubmitted){
   return (
     <FormWrapper>
       <Title>Cards</Title>
@@ -58,6 +106,15 @@ const EligibilityApplication = () => {
       </form>
     </FormWrapper>
   );
+  }
+  else if (!requestProcessed){
+      return (
+        <div><button onClick={checkCardHandler}>Click To Get Results !</button></div>
+      );
+  }
+  else{
+        return <div></div>;
+  }
 };
 
 export default EligibilityApplication;

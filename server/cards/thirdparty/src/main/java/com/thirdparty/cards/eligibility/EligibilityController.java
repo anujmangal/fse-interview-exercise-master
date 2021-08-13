@@ -19,7 +19,6 @@ public class EligibilityController {
 	
 	@PostMapping(path = "check", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 	public Eligibility checkEligibility(@Valid @RequestBody EligibilityApplicant applicant) {
-		
 		return service.checkEligibilityFor(applicant);
 		
 	}

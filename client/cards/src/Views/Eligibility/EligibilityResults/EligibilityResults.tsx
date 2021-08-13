@@ -10,8 +10,12 @@ const ResultsWrapper = styled.div`
   flex-wrap: wrap;
 `;
 
-const EligibilityResults = () => {
-  return <ResultsWrapper></ResultsWrapper>;
+interface ResultValues {
+  cardsAllowed: string;
+}
+
+const EligibilityResults : React.FC<ResultValues> = (props) => {
+    return <ResultsWrapper>{props.cardsAllowed}</ResultsWrapper>;
 };
 
 export default EligibilityResults;
